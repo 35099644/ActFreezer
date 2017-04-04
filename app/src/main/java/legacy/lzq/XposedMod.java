@@ -1,6 +1,6 @@
-package legacy;
+package legacy.lzq;
 
-import android.app.ActivityThread;
+//import android.app.ActivityThread;
 
 import de.robv.android.xposed.IXposedHookZygoteInit;
 import de.robv.android.xposed.XposedBridge;

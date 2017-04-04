@@ -1,4 +1,4 @@
-package legacy;
+package legacy.lzq;
 
 import android.content.ComponentName;
 import android.content.Context;

@@ -1,6 +1,6 @@
-package legacy;
+package legacy.lzq;
 
-import android.app.IApplicationThread;
+//import android.app.IApplicationThread;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
@@ -8,7 +8,6 @@ import android.os.Binder;
 import android.os.Build;
 import android.os.Process;
 
-import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -16,7 +15,6 @@ import java.util.Collection;
 
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedBridge;
-import de.robv.android.xposed.XposedHelpers;
 
 import static de.robv.android.xposed.XposedHelpers.findAndHookMethod;
 

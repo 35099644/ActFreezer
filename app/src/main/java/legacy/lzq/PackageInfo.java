@@ -1,4 +1,4 @@
-package legacy;
+package legacy.lzq;
 
 import android.graphics.drawable.Drawable;
 import android.os.Parcel;

@@ -42,7 +42,7 @@ public class DetectionService extends AccessibilityService {
         PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
                 new Intent(this, MainActivity.class), 0);
         builder.setContentIntent(contentIntent);
-        builder.setSmallIcon(R.mipmap.ic_launcher);
+        //builder.setSmallIcon(R.mipmap.ic_launcher);
         builder.setTicker("Foreground Service Start");
         builder.setContentTitle("Foreground Service");
         builder.setContentText("Xposed Demo is running,don't kill it manually.");

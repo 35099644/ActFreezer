@@ -19,12 +19,12 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        //setContentView(R.layout.activity_main);
         ComponentName com=new ComponentName("com.xzh.xposeddemo","com.xzh.xposeddemo.DetectionService");
         final Intent serviceIntent=new Intent();
         serviceIntent.setComponent(com);
         //startService(serviceIntent);
-        btnRead= (Button) findViewById(R.id.buttonRead);
+        //btnRead= (Button) findViewById(R.id.buttonRead);
         btnRead.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
