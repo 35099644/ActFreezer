@@ -22,6 +22,6 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
-        startService(new Intent(this, ServiceLogger.class));
+        //startService(new Intent(this, ServiceLogger.class));
     }
 }
