@@ -2,6 +2,7 @@ package com.netlab.actfreezer;
 
 //import android.app.IApplicationThread;
 
+import android.app.IApplicationThread;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
@@ -16,8 +17,8 @@ import java.util.Collection;
 
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedBridge;
-import legacy.lzq.IApplicationThread;
-import legacy.lzq.ProcessRecordUtils;
+
+
 
 import static de.robv.android.xposed.XposedHelpers.findAndHookMethod;
 
@@ -33,12 +34,17 @@ public class SystemServiceHook extends XC_MethodHook {
     @Override
     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+
+        XposedBridge.log("in afterHookedMethod, call hookActivityManagerService");
         hookActivityManagerService(classLoader);
 
     }
 
     private void hookActivityManagerService(ClassLoader classLoader) throws ClassNotFoundException, NoSuchMethodException {
         Class<?> activityManagerService = Class.forName("com.android.server.am.ActivityManagerService", false, classLoader);
+
+        XposedBridge.log("in hookActivityManagerService, call a lot of hooking method.");
+
         hookActivityManagerServiceStartService(activityManagerService);
         hookActivityManagerServiceBroadcastIntent(activityManagerService, classLoader);
         hookActivityManagerServiceBindService(activityManagerService, classLoader);

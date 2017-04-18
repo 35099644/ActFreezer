@@ -1,4 +1,4 @@
-package com.netlab.actfreezer;
+package android.app;
 
 import android.app.Application;
 
