@@ -39,13 +39,13 @@ public class SystemServiceHook extends XC_MethodHook {
 
     private void hookActivityManagerService(ClassLoader classLoader) throws ClassNotFoundException, NoSuchMethodException {
         Class<?> activityManagerService = Class.forName("com.android.server.am.ActivityManagerService", false, classLoader);
-//        hookActivityManagerServiceStartService(activityManagerService);
-//        hookActivityManagerServiceBroadcastIntent(activityManagerService, classLoader);
-//        hookActivityManagerServiceBindService(activityManagerService, classLoader);
+        hookActivityManagerServiceStartService(activityManagerService);
+        hookActivityManagerServiceBroadcastIntent(activityManagerService, classLoader);
+        hookActivityManagerServiceBindService(activityManagerService, classLoader);
         getRecordForAppLocked = activityManagerService.getDeclaredMethod("getRecordForAppLocked", IApplicationThread.class);
         getRecordForAppLocked.setAccessible(true);
-        //hookhandleReceiver(classLoader);
-        //hookCheckBroadcast(classLoader);
+        hookhandleReceiver(classLoader);
+        hookCheckBroadcast(classLoader);
 
 
 //        Class<?> activityThread = Class.forName("backgroundstudy.lzq.com.backgroundstudyapp.MainActivity");
