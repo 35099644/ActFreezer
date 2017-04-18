@@ -9,6 +9,7 @@ import android.content.pm.ApplicationInfo;
 import android.os.Binder;
 import android.os.Build;
 import android.os.Process;
+import android.util.Log;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -28,6 +29,7 @@ import static de.robv.android.xposed.XposedHelpers.findAndHookMethod;
 public class SystemServiceHook extends XC_MethodHook {
 
 
+    private static final String TAG = "SystemServiceHook";
     private static Method getRecordForAppLocked;
 
 
@@ -46,12 +48,12 @@ public class SystemServiceHook extends XC_MethodHook {
         XposedBridge.log("in hookActivityManagerService, call a lot of hooking method.");
 
         hookActivityManagerServiceStartService(activityManagerService);
-        hookActivityManagerServiceBroadcastIntent(activityManagerService, classLoader);
-        hookActivityManagerServiceBindService(activityManagerService, classLoader);
+//        hookActivityManagerServiceBroadcastIntent(activityManagerService, classLoader);
+//        hookActivityManagerServiceBindService(activityManagerService, classLoader);
         getRecordForAppLocked = activityManagerService.getDeclaredMethod("getRecordForAppLocked", IApplicationThread.class);
         getRecordForAppLocked.setAccessible(true);
-        hookhandleReceiver(classLoader);
-        hookCheckBroadcast(classLoader);
+//        hookhandleReceiver(classLoader);
+//        hookCheckBroadcast(classLoader);
 
 
 //        Class<?> activityThread = Class.forName("backgroundstudy.lzq.com.backgroundstudyapp.MainActivity");
@@ -298,7 +300,8 @@ public class SystemServiceHook extends XC_MethodHook {
 
 
             //XposedBridge.log(param.thisObject.getClass().toString());
-            XposedBridge.log(", LZQ Hook Start Service Activation, " + pid + " , " + sender + " , " + cn.toString() + " , " + System.currentTimeMillis());
+            XposedBridge.log(", LZQ Hook Start Service Activation, " + pid + " , " + sender + " , " +cn.getClassName()+","+cn.getPackageName()+","+ cn.toString() + " , " + System.currentTimeMillis());
+            Log.d(TAG,", LZQ Hook Start Service Activation, " + pid + " , " + sender + " , " +cn.getClassName()+","+cn.getPackageName()+","+ cn.toString() + " , " + System.currentTimeMillis());
             //XposedBridge.log("LZQ Hook: "+cn.toString()+" "+Thread.currentThread().getId());
 
             if (cn != null && cn.getPackageName().startsWith("!")) {
