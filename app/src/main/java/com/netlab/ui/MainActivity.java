@@ -38,6 +38,6 @@ public class MainActivity extends AppCompatActivity {
                                                   }
                                               }
         );
-        //startService(new Intent(this, ServiceLogger.class));
+        startService(new Intent(this, ServiceLogger.class));
     }
 }

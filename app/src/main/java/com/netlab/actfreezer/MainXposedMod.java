@@ -11,7 +11,7 @@ import de.robv.android.xposed.XposedBridge;
  * Created by ZQ on 2017/4/4.
  */
 
-public class Tutorial implements  IXposedHookZygoteInit {
+public class MainXposedMod implements  IXposedHookZygoteInit {
     @Override
     public void initZygote(StartupParam startupParam) throws Throwable {
 

@@ -3,7 +3,7 @@
     package="com.netlab.actfreezer">
 
     <uses-permission android:name="android.permission.KILL_BACKGROUND_PROCESSES" />
-
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
 
     <application
         android:allowBackup="true"
@@ -32,9 +32,9 @@
 
         <service
             android:name="com.netlab.servicelogger.ServiceLogger"
-            android:process=":actfreezer_logging_service"
             android:enabled="true"
-            android:exported="true"/>
+            android:exported="true"
+            android:process=":actfreezer_logging_service" />
 
     </application>
 

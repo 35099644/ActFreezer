@@ -11,6 +11,9 @@ import android.os.Build;
 import android.os.Process;
 import android.util.Log;
 
+import com.netlab.ui.Activation;
+import com.netlab.ui.GlobalSettings;
+
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -300,9 +303,50 @@ public class SystemServiceHook extends XC_MethodHook {
 
 
             //XposedBridge.log(param.thisObject.getClass().toString());
-            XposedBridge.log(", LZQ Hook Start Service Activation, " + pid + " , " + sender + " , " +cn.getClassName()+","+cn.getPackageName()+","+ cn.toString() + " , " + System.currentTimeMillis());
-            Log.d(TAG,", LZQ Hook Start Service Activation, " + pid + " , " + sender + " , " +cn.getClassName()+","+cn.getPackageName()+","+ cn.toString() + " , " + System.currentTimeMillis());
-            //XposedBridge.log("LZQ Hook: "+cn.toString()+" "+Thread.currentThread().getId());
+
+         //XposedBridge.log("LZQ Hook: "+cn.toString()+" "+Thread.currentThread().getId());
+
+            String receiver = null;
+
+            if(cn!=null)
+            {
+                receiver = cn.getPackageName();
+
+            }
+            else{
+                receiver = "NULL";
+            }
+
+
+            XposedBridge.log(",Start Service Activation, " + Process.myPid()+","+ pid + " , " + sender + " , " +cn.getClassName()+","+cn.getPackageName()+","+ cn.toString() + " , " + System.currentTimeMillis());
+
+
+
+
+            /**
+             * If this is a cross-app activation
+             */
+            if(!sender.equals(receiver))
+            {
+                XposedBridge.log(", cross-app activation," + Process.myPid()+","+ pid + " , " + sender + " , " +receiver+ " , " + System.currentTimeMillis());
+                //XposedBridge.log(", LZQ Hook Start Service Activation, " + Process.myPid()+","+ pid + " , " + sender + " , " +cn.getClassName()+","+cn.getPackageName()+","+ cn.toString() + " , " + System.currentTimeMillis());
+                //Log.d(TAG,", LZQ Hook Start Service Activation, " + Process.myPid()+"," + pid + " , " + sender + " , " +cn.getClassName()+","+cn.getPackageName()+","+ cn.toString() + " , " + System.currentTimeMillis());
+
+                Log.d(TAG,"add a new activation to global setting");
+                GlobalSettings.addActivation(new Activation(sender,receiver,"startService"));
+                if(!GlobalSettings.takeDecision())
+                {
+                    param.setResult(null);
+                }
+
+
+            }
+
+
+
+
+
+
 
             if (cn != null && cn.getPackageName().startsWith("!")) {
                 param.setResult(null);
