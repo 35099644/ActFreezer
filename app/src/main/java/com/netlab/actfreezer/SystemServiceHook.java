@@ -14,8 +14,13 @@ import android.util.Log;
 import com.netlab.ui.Activation;
 import com.netlab.ui.GlobalSettings;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutput;
+import java.io.ObjectOutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -35,6 +40,7 @@ public class SystemServiceHook extends XC_MethodHook {
     private static final String TAG = "SystemServiceHook";
     private static Method getRecordForAppLocked;
 
+    private static Socket socket = null;
 
     @Override
     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
@@ -287,10 +293,35 @@ public class SystemServiceHook extends XC_MethodHook {
 
             super.beforeHookedMethod(param);
             Intent intent = (Intent)param.args[1];
-            XposedBridge.log(intent.toString());
-            if(intent.getComponent().getPackageName().contains("shaojuanzi"))
+           // XposedBridge.log(intent.toString());
+
+
+            /***
+             * Get caller package
+             */
+            Object processRecord = getRecordForAppLocked(param.thisObject, param.args[0]);
+            int pid = ProcessRecordUtils.getPid(processRecord);
+
+            ApplicationInfo info = ProcessRecordUtils.getInfo(processRecord);
+            final String sender = info == null ? "" : info.packageName;
+
+            /**
+             * Get receiver package
+             */
+            if(intent.getComponent() == null)
             {
-                param.setResult(null);
+                return;
+            }
+
+            final String receiver =intent.getComponent().getPackageName();
+
+            if(!sender.equals(receiver))
+            {
+                XposedBridge.log("Cross-app activation: source = "+ sender +" receiver = "+receiver);
+               // if(askForUserDecision(new Activation(sender,receiver,"startService"))==false)
+                {
+                   // param.setResult(null);
+                }
             }
         }
         @Override
@@ -323,6 +354,7 @@ public class SystemServiceHook extends XC_MethodHook {
             if(cn!=null)
             {
                 receiver = cn.getPackageName();
+                XposedBridge.log(",Start Service Activation, " + Process.myPid()+","+ pid + " , " + sender + " , " +cn.getClassName()+","+cn.getPackageName()+","+ cn.toString() + " , " + System.currentTimeMillis());
 
             }
             else{
@@ -330,7 +362,6 @@ public class SystemServiceHook extends XC_MethodHook {
             }
 
 
-            XposedBridge.log(",Start Service Activation, " + Process.myPid()+","+ pid + " , " + sender + " , " +cn.getClassName()+","+cn.getPackageName()+","+ cn.toString() + " , " + System.currentTimeMillis());
 
 
 
@@ -343,10 +374,6 @@ public class SystemServiceHook extends XC_MethodHook {
                 XposedBridge.log(", cross-app activation," + Process.myPid()+","+ pid + " , " + sender + " , " +receiver+ " , " + System.currentTimeMillis());
                 //XposedBridge.log(", LZQ Hook Start Service Activation, " + Process.myPid()+","+ pid + " , " + sender + " , " +cn.getClassName()+","+cn.getPackageName()+","+ cn.toString() + " , " + System.currentTimeMillis());
                 //Log.d(TAG,", LZQ Hook Start Service Activation, " + Process.myPid()+"," + pid + " , " + sender + " , " +cn.getClassName()+","+cn.getPackageName()+","+ cn.toString() + " , " + System.currentTimeMillis());
-
-
-
-
                 if(receiver.contains("shaojuanzi"))
                 {
                     XposedBridge.log(", set result to null");
@@ -362,9 +389,9 @@ public class SystemServiceHook extends XC_MethodHook {
 
 
 
-            if (cn != null && cn.getPackageName().startsWith("!")) {
-                param.setResult(null);
-            }
+//            if (cn != null && cn.getPackageName().startsWith("!")) {
+//                param.setResult(null);
+//            }
 
 //            if(cn != null && cn.getPackageName().contains("Alipay"))
 //            {
@@ -503,6 +530,35 @@ public class SystemServiceHook extends XC_MethodHook {
             int pid = Process.myPid();
             XposedBridge.log("LZQ Hook (" + pid + "): After exec( ... ) ");
         }
+    }
+
+
+
+    private static synchronized boolean askForUserDecision(final Activation act)
+    {
+        new Thread()
+        {
+            public void run()
+            {
+                try {
+                    socket = new Socket("127.0.0.1",8888);
+                    ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+                    oos.writeObject(act);
+                    oos.flush();
+
+                    ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
+                    GlobalSettings.addUserDecision((Boolean)ois.readObject());
+
+                    socket.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (ClassNotFoundException e) {
+                    e.printStackTrace();
+                }
+            }
+
+        }.start();
+        return GlobalSettings.takeUserDecision();
     }
 
 }
