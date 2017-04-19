@@ -1,12 +1,9 @@
-package com.netlab.actfreezer;
+package shaojuanzi.senderapp;
 
+import android.content.ComponentName;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-
-import com.netlab.servicelogger.ServiceLogger;
-
-import java.io.IOException;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -15,13 +12,9 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+       Intent serviceIntent=new Intent();
+       serviceIntent.setComponent(new ComponentName("shaojuanzi.receiverapp", "shaojuanzi.receiverapp.ReceiverService"));
 
-        try {
-            Runtime.getRuntime().exec("su");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        startService(new Intent(this, ServiceLogger.class));
+        startService(serviceIntent);
     }
 }
