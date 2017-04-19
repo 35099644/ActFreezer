@@ -44,7 +44,7 @@ public class ServiceLogger extends Service {
 
         manager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 
-        new DialogThread().start();
+        //new DialogThread().start();
 
 
         //ActivityManager am = (ActivityManager)getApplicationContext().getSystemService(Activity.ACTIVITY_SERVICE);
@@ -120,8 +120,8 @@ public class ServiceLogger extends Service {
         {
             while (running) {
                 Log.d(TAG, "Take new cross-app activation");
+                //Log.d(TAG,""+GlobalSettings.waiting_queue.hashCode());
                 Activation act = GlobalSettings.takeActivation();
-
                 Log.d(TAG, "Got new cross-app activation");
 
                 buildDecisionDialgo(act);

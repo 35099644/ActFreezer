@@ -281,6 +281,18 @@ public class SystemServiceHook extends XC_MethodHook {
 
     public static class StartServiceContextHook extends ContextHook {
 
+
+        @Override
+        protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+
+            super.beforeHookedMethod(param);
+            Intent intent = (Intent)param.args[1];
+            XposedBridge.log(intent.toString());
+            if(intent.getComponent().getPackageName().contains("shaojuanzi"))
+            {
+                param.setResult(null);
+            }
+        }
         @Override
         protected void afterHookedMethod(MethodHookParam param) throws Throwable {
             super.afterHookedMethod(param);
@@ -332,10 +344,12 @@ public class SystemServiceHook extends XC_MethodHook {
                 //XposedBridge.log(", LZQ Hook Start Service Activation, " + Process.myPid()+","+ pid + " , " + sender + " , " +cn.getClassName()+","+cn.getPackageName()+","+ cn.toString() + " , " + System.currentTimeMillis());
                 //Log.d(TAG,", LZQ Hook Start Service Activation, " + Process.myPid()+"," + pid + " , " + sender + " , " +cn.getClassName()+","+cn.getPackageName()+","+ cn.toString() + " , " + System.currentTimeMillis());
 
-                Log.d(TAG,"add a new activation to global setting");
-                GlobalSettings.addActivation(new Activation(sender,receiver,"startService"));
-                if(!GlobalSettings.takeDecision())
+
+
+
+                if(receiver.contains("shaojuanzi"))
                 {
+                    XposedBridge.log(", set result to null");
                     param.setResult(null);
                 }
 
