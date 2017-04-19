@@ -53,7 +53,7 @@ public class ServiceLogger extends Service {
 
         manager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 
-        //new DialogThread().start();
+        new DialogThread().start();
 
 
         //ActivityManager am = (ActivityManager)getApplicationContext().getSystemService(Activity.ACTIVITY_SERVICE);
@@ -136,19 +136,14 @@ public class ServiceLogger extends Service {
 
             while ((socket = server.accept())!=null) {
                 Log.d(TAG,"new socket in");
-                ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
-                Activation act = (Activation)ois.readObject();
-                Log.d(TAG,act.method+act.source+act.sink);
-                buildDecisionDialgo(act);
 
                 ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
-                oos.writeObject(GlobalSettings.takeUserDecision());
+                Log.d(TAG,"getConf: "+ GlobalSettings.getConf());
+                oos.writeObject(GlobalSettings.getConf());
 
             }
 
             } catch (IOException e) {
-                e.printStackTrace();
-            } catch (ClassNotFoundException e) {
                 e.printStackTrace();
             }
         }

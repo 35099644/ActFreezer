@@ -1,6 +1,8 @@
 package com.netlab.ui;
 
 import android.os.Environment;
+import android.os.Process;
+import android.provider.Settings;
 import android.util.Log;
 
 import java.io.BufferedReader;
@@ -12,6 +14,10 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.concurrent.LinkedBlockingQueue;
+
+import de.robv.android.xposed.XSharedPreferences;
+import de.robv.android.xposed.XposedBridge;
+import de.robv.android.xposed.XposedHelpers;
 
 /**
  * Created by ZQ on 2017/4/18.
@@ -31,7 +37,7 @@ public class GlobalSettings {
     private static LinkedBlockingQueue<Boolean> user_decision_queue = new LinkedBlockingQueue<>();
 
 
-    private static String configuration_path = Environment.getExternalStorageDirectory() + "/actfreezer.config";
+    private static String configuration_path =   "/sdcard/actfreezer.config";
 
 
     /**
@@ -39,6 +45,8 @@ public class GlobalSettings {
      * False by default, cut all cross-app activations.
      */
     public synchronized static void initializeConf(boolean allow) {
+
+
         File conf_file = new File(configuration_path);
         if (conf_file.exists()) {
             conf_file.delete();
@@ -80,8 +88,16 @@ public class GlobalSettings {
 
         BufferedReader br;
 
+        int pid = Process.myPid();
+        System.err.println("in pid = "+pid+", call getConf");
+        try {
+            java.lang.Process su = Runtime.getRuntime().exec("su");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         try {
             br = new BufferedReader(new FileReader(conf_file));
+
             if(br.readLine().equals("false"))
             {
                 return false;

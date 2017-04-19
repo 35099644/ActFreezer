@@ -14,6 +14,9 @@ import android.util.Log;
 import com.netlab.ui.Activation;
 import com.netlab.ui.GlobalSettings;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutput;
@@ -25,8 +28,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import de.robv.android.xposed.XC_MethodHook;
+import de.robv.android.xposed.XSharedPreferences;
 import de.robv.android.xposed.XposedBridge;
-
+import de.robv.android.xposed.XposedHelpers;
 
 
 import static de.robv.android.xposed.XposedHelpers.findAndHookMethod;
@@ -58,7 +62,7 @@ public class SystemServiceHook extends XC_MethodHook {
 
         hookActivityManagerServiceStartService(activityManagerService);
 //        hookActivityManagerServiceBroadcastIntent(activityManagerService, classLoader);
-//        hookActivityManagerServiceBindService(activityManagerService, classLoader);
+        hookActivityManagerServiceBindService(activityManagerService, classLoader);
         getRecordForAppLocked = activityManagerService.getDeclaredMethod("getRecordForAppLocked", IApplicationThread.class);
         getRecordForAppLocked.setAccessible(true);
 //        hookhandleReceiver(classLoader);
@@ -123,12 +127,10 @@ public class SystemServiceHook extends XC_MethodHook {
                         String action = intent.getAction();
 
 
-                        
-                        if(intent == null)
-                        {
-                            intent=new Intent("null intent");
+                        if (intent == null) {
+                            intent = new Intent("null intent");
                         }
-                        if(!action.startsWith("android.intent")) {
+                        if (!action.startsWith("android.intent")) {
                             XposedBridge.log("hook IntentFirewall.checkBroadcast : " + "broadcast from " + callerUid + " to " + receivingUid + " , " + intent.toString());
                         }
                         if (action == null)
@@ -255,15 +257,10 @@ public class SystemServiceHook extends XC_MethodHook {
     public static class BindServiceContextHook extends ContextHook {
         @Override
         protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-
-        }
-
-        @Override
-        protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-            //ComponentName cn = (ComponentName) param.getResult();
             Intent intent = (Intent) param.args[0x2];
             if (intent == null) {
                 intent = new Intent("NULL");
+
             }
             Object processRecord = getRecordForAppLocked(param.thisObject, param.args[0]);
             int pid = ProcessRecordUtils.getPid(processRecord);
@@ -280,7 +277,26 @@ public class SystemServiceHook extends XC_MethodHook {
             if (sender.startsWith("com.android") || sender.equals("") || sender.equals("android") || sender.startsWith("com.google"))
                 return;
 
-            XposedBridge.log(", LZQ Hook Bind Service Activation, " + pid + " , " + sender + " , " + intent.toString() + " , " + System.currentTimeMillis());
+            Log.d(TAG, "hooked bindService, from " + sender + " intent = " + intent.toString());
+
+            if (intent.getComponent() == null) {
+                intent.setComponent(new ComponentName("NULL_PKG", "NULL_CLASS"));
+            }
+
+            final String receiver = intent.getComponent().getPackageName();
+
+            if (!sender.equals(receiver)) {
+                XposedBridge.log("Cross-app bindService activation: source = " + sender + " receiver = " + receiver);
+                XposedBridge.log("Stop cross-app activation, kill the activation");
+                param.setResult(null);
+            }
+
+        }
+
+        @Override
+        protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+            //ComponentName cn = (ComponentName) param.getResult();
+
             //XposedBridge.log("LZQ Hook Start Service Activation, "+pid+" , "+sender+" , "+cn.toString()+" , "+System.currentTimeMillis());
         }
     }
@@ -292,8 +308,8 @@ public class SystemServiceHook extends XC_MethodHook {
         protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
 
             super.beforeHookedMethod(param);
-            Intent intent = (Intent)param.args[1];
-           // XposedBridge.log(intent.toString());
+            Intent intent = (Intent) param.args[1];
+            // XposedBridge.log(intent.toString());
 
 
             /***
@@ -305,38 +321,6 @@ public class SystemServiceHook extends XC_MethodHook {
             ApplicationInfo info = ProcessRecordUtils.getInfo(processRecord);
             final String sender = info == null ? "" : info.packageName;
 
-            /**
-             * Get receiver package
-             */
-            if(intent.getComponent() == null)
-            {
-                return;
-            }
-
-            final String receiver =intent.getComponent().getPackageName();
-
-            if(!sender.equals(receiver))
-            {
-                XposedBridge.log("Cross-app activation: source = "+ sender +" receiver = "+receiver);
-               // if(askForUserDecision(new Activation(sender,receiver,"startService"))==false)
-                {
-                   // param.setResult(null);
-                }
-            }
-        }
-        @Override
-        protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-            super.afterHookedMethod(param);
-            ComponentName cn = (ComponentName) param.getResult();
-
-            Object processRecord = getRecordForAppLocked(param.thisObject, param.args[0]);
-            int pid = ProcessRecordUtils.getPid(processRecord);
-
-            ApplicationInfo info = ProcessRecordUtils.getInfo(processRecord);
-            String sender = info == null ? "" : info.packageName;
-            if (sender == null) {
-                sender = String.valueOf(Binder.getCallingUid());
-            }
 
             /**
              * 对于系统自己的唤醒，不管他
@@ -345,48 +329,86 @@ public class SystemServiceHook extends XC_MethodHook {
                 return;
 
 
+            Log.d(TAG, "hooked startService, from " + sender + " intent = " + intent.toString());
+
+            /**
+             * Get receiver package
+             */
+            if (intent.getComponent() == null) {
+                intent.setComponent(new ComponentName("NULL_PKG", "NULL_CLASS"));
+            }
+
+            final String receiver = intent.getComponent().getPackageName();
+
+
+            if (!sender.equals(receiver)) {
+                XposedBridge.log("Cross-app startService activation: source = " + sender + " receiver = " + receiver);
+
+                //boolean user_decision = askForUserDecision();
+
+                //XposedBridge.log("Read from socket, user decision: "+user_decision);
+                //if(user_decision)
+                {
+                    XposedBridge.log("Stop cross-app activation, kill the activation");
+                    param.setResult(null);
+                }
+            }
+        }
+
+        @Override
+        protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+            super.afterHookedMethod(param);
+//            ComponentName cn = (ComponentName) param.getResult();
+//
+//            Object processRecord = getRecordForAppLocked(param.thisObject, param.args[0]);
+//            int pid = ProcessRecordUtils.getPid(processRecord);
+//
+//            ApplicationInfo info = ProcessRecordUtils.getInfo(processRecord);
+//            String sender = info == null ? "" : info.packageName;
+//            if (sender == null) {
+//                sender = String.valueOf(Binder.getCallingUid());
+//            }
+//
+//            /**
+//             * 对于系统自己的唤醒，不管他
+//             */
+//            if (sender.startsWith("com.android") || sender.equals("") || sender.equals("android") || sender.startsWith("com.google"))
+//                return;
+
+
             //XposedBridge.log(param.thisObject.getClass().toString());
 
-         //XposedBridge.log("LZQ Hook: "+cn.toString()+" "+Thread.currentThread().getId());
+            //XposedBridge.log("LZQ Hook: "+cn.toString()+" "+Thread.currentThread().getId());
 
-            String receiver = null;
-
-            if(cn!=null)
-            {
-                receiver = cn.getPackageName();
-                XposedBridge.log(",Start Service Activation, " + Process.myPid()+","+ pid + " , " + sender + " , " +cn.getClassName()+","+cn.getPackageName()+","+ cn.toString() + " , " + System.currentTimeMillis());
-
-            }
-            else{
-                receiver = "NULL";
-            }
-
-
-
-
+//            String receiver = null;
+//
+//            if(cn!=null)
+//            {
+//                receiver = cn.getPackageName();
+//               // XposedBridge.log(",Start Service Activation, " + Process.myPid()+","+ pid + " , " + sender + " , " +cn.getClassName()+","+cn.getPackageName()+","+ cn.toString() + " , " + System.currentTimeMillis());
+//
+//            }
+//            else{
+//                receiver = "NULL";
+//            }
 
 
             /**
              * If this is a cross-app activation
              */
-            if(!sender.equals(receiver))
-            {
-                XposedBridge.log(", cross-app activation," + Process.myPid()+","+ pid + " , " + sender + " , " +receiver+ " , " + System.currentTimeMillis());
-                //XposedBridge.log(", LZQ Hook Start Service Activation, " + Process.myPid()+","+ pid + " , " + sender + " , " +cn.getClassName()+","+cn.getPackageName()+","+ cn.toString() + " , " + System.currentTimeMillis());
-                //Log.d(TAG,", LZQ Hook Start Service Activation, " + Process.myPid()+"," + pid + " , " + sender + " , " +cn.getClassName()+","+cn.getPackageName()+","+ cn.toString() + " , " + System.currentTimeMillis());
-                if(receiver.contains("shaojuanzi"))
-                {
-                    XposedBridge.log(", set result to null");
-                    param.setResult(null);
-                }
+            // if(!sender.equals(receiver))
+            //{
+            //XposedBridge.log(", cross-app activation," + Process.myPid()+","+ pid + " , " + sender + " , " +receiver+ " , " + System.currentTimeMillis());
+            //XposedBridge.log(", LZQ Hook Start Service Activation, " + Process.myPid()+","+ pid + " , " + sender + " , " +cn.getClassName()+","+cn.getPackageName()+","+ cn.toString() + " , " + System.currentTimeMillis());
+            //Log.d(TAG,", LZQ Hook Start Service Activation, " + Process.myPid()+"," + pid + " , " + sender + " , " +cn.getClassName()+","+cn.getPackageName()+","+ cn.toString() + " , " + System.currentTimeMillis());
+//                if(receiver.contains("shaojuanzi"))
+//                {
+//                    XposedBridge.log(", set result to null");
+//                    param.setResult(null);
+//                }
 
 
-            }
-
-
-
-
-
+            // }
 
 
 //            if (cn != null && cn.getPackageName().startsWith("!")) {
@@ -533,28 +555,29 @@ public class SystemServiceHook extends XC_MethodHook {
     }
 
 
+    private static synchronized boolean askForUserDecision() {
+        new Thread() {
+            boolean result = false;
 
-    private static synchronized boolean askForUserDecision(final Activation act)
-    {
-        new Thread()
-        {
-            public void run()
-            {
+            public void run() {
                 try {
-                    socket = new Socket("127.0.0.1",8888);
-                    ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
-                    oos.writeObject(act);
-                    oos.flush();
+                    socket = new Socket("127.0.0.1", 8888);
 
                     ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
-                    GlobalSettings.addUserDecision((Boolean)ois.readObject());
+                    result = (Boolean) ois.readObject();
+
+                    XposedBridge.log(TAG + ", " + result);
+
 
                     socket.close();
                 } catch (IOException e) {
                     e.printStackTrace();
                 } catch (ClassNotFoundException e) {
                     e.printStackTrace();
+                } finally {
+                    GlobalSettings.addUserDecision(result);
                 }
+
             }
 
         }.start();
