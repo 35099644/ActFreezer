@@ -14,6 +14,12 @@ import android.view.WindowManager;
 import com.netlab.ui.Activation;
 import com.netlab.ui.GlobalSettings;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.ServerSocket;
+import java.net.Socket;
+
 import de.robv.android.xposed.XposedBridge;
 
 /**
@@ -28,6 +34,9 @@ public class ServiceLogger extends Service {
     boolean running = true;
 
     NotificationManager manager = null;
+
+    ServerSocket server = null;
+    Socket socket = null;
 
     @Nullable
     @Override
@@ -44,7 +53,7 @@ public class ServiceLogger extends Service {
 
         manager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 
-        //new DialogThread().start();
+        new DialogThread().start();
 
 
         //ActivityManager am = (ActivityManager)getApplicationContext().getSystemService(Activity.ACTIVITY_SERVICE);
@@ -116,19 +125,26 @@ public class ServiceLogger extends Service {
 
 
     class DialogThread extends Thread{
+
+
+
         public void run()
         {
-            while (running) {
-                Log.d(TAG, "Take new cross-app activation");
-                //Log.d(TAG,""+GlobalSettings.waiting_queue.hashCode());
-                Activation act = GlobalSettings.takeActivation();
-                Log.d(TAG, "Got new cross-app activation");
+            try {
+                server = new ServerSocket(8888);
 
-                buildDecisionDialgo(act);
-                buildNotification(act);
 
-                boolean decision = GlobalSettings.takeUserDecision();
-                GlobalSettings.addDecision(decision);
+            while ((socket = server.accept())!=null) {
+                Log.d(TAG,"new socket in");
+
+                ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+                Log.d(TAG,"getConf: "+ GlobalSettings.getConf());
+                oos.writeObject(GlobalSettings.getConf());
+
+            }
+
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
     }
