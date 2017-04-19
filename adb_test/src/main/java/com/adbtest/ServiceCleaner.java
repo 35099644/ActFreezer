@@ -15,8 +15,7 @@ public class ServiceCleaner extends Thread {
 		String ps_line = null;
 
 		try {
-			reading_process = Runtime.getRuntime().exec(
-					new String[] { "adb", "shell", "ps" });
+			reading_process = Runtime.getRuntime().exec("/Users/laizeqi/Library/Android/sdk/platform-tools/adb shell ps");
 		} catch (IOException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
@@ -36,8 +35,9 @@ public class ServiceCleaner extends Thread {
 					System.out.println("pid = " + line[1] + " name = " + line[8]);
 					if(!line[0].contains("system")&&!line[0].contains("root"))
 					{
-					reading_process = Runtime.getRuntime().exec(
-							new String[] { "adb", "shell", "am force-stop " + line[8].split(":")[0]});
+						//for Mac OS: use /Users/laizeqi/Library/Android/sdk/platform-tools/adb shell ps
+						//for Windows: use adb shell am
+					reading_process = Runtime.getRuntime().exec("/Users/laizeqi/Library/Android/sdk/platform-tools/adb shell am force-stop " + line[8].split(":")[0]);
 					}
 				}
 			}
