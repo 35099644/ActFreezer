@@ -1,6 +1,8 @@
 package android.app;
 
 import android.app.Application;
+import android.content.Intent;
+import android.os.IBinder;
 
 import legacy.lzq.IApplicationThread;
 
@@ -19,5 +21,6 @@ public class ActivityThread {
 
     private abstract class ApplicationThread implements IApplicationThread {
     }
+
 
 }
