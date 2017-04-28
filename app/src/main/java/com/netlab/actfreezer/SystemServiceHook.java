@@ -61,12 +61,12 @@ public class SystemServiceHook extends XC_MethodHook {
         XposedBridge.log("in hookActivityManagerService, call a lot of hooking method.");
 
         hookActivityManagerServiceStartService(activityManagerService);
-//        hookActivityManagerServiceBroadcastIntent(activityManagerService, classLoader);
+        //hookActivityManagerServiceBroadcastIntent(activityManagerService, classLoader);
         hookActivityManagerServiceBindService(activityManagerService, classLoader);
         getRecordForAppLocked = activityManagerService.getDeclaredMethod("getRecordForAppLocked", IApplicationThread.class);
         getRecordForAppLocked.setAccessible(true);
-//        hookhandleReceiver(classLoader);
-//        hookCheckBroadcast(classLoader);
+        //hookhandleReceiver(classLoader);
+        //hookCheckBroadcast(classLoader);
 
 
 //        Class<?> activityThread = Class.forName("backgroundstudy.lzq.com.backgroundstudyapp.MainActivity");
@@ -127,18 +127,28 @@ public class SystemServiceHook extends XC_MethodHook {
                         String action = intent.getAction();
 
 
+
+
                         if (intent == null) {
-                            intent = new Intent("null intent");
+                            intent = new Intent("NULL_INTENT");
                         }
-                        if (!action.startsWith("android.intent")) {
-                            XposedBridge.log("hook IntentFirewall.checkBroadcast : " + "broadcast from " + callerUid + " to " + receivingUid + " , " + intent.toString());
+
+                        /**
+                         * Get receiver package
+                         */
+                        if (intent.getComponent() == null) {
+                            intent.setComponent(new ComponentName("NULL_PKG", "NULL_CLASS"));
                         }
-                        if (action == null)
-                            return;
-                        if (action.equals("android.intent.action.SCREEN_OFF"))
-                            XposedBridge.log("hook IntentFirewall.checkBroadcast : " + "screen off");
-                        if (action.equals("android.intent.action.SCREEN_ON"))
-                            XposedBridge.log("hook IntentFirewall.checkBroadcast : " + "screen on");
+
+                        final String receiver = intent.getComponent().getPackageName();
+
+                        /**
+                         * 如果接收的Receiver不是一个系统的Component，那么输出这一条；
+                         */
+                        if (!(receiver.startsWith("com.android") || receiver.equals("") || receiver.equals("android") || receiver.startsWith("com.google")))
+                        {
+                            Log.d(TAG,"hooked CheckBroadcast, intent = " + intent.toString() +" receiver = "+ receiver);
+                        }
                     }
                 });
     }
@@ -221,7 +231,7 @@ public class SystemServiceHook extends XC_MethodHook {
     public static class BroadcastIntentContextHook extends ContextHook {
 
         @Override
-        protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+        protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
             super.afterHookedMethod(param);
             Intent intent = (Intent) param.args[0x1];
             Integer result = (Integer) param.getResult();
@@ -240,13 +250,29 @@ public class SystemServiceHook extends XC_MethodHook {
             /**
              * 对于系统自己的唤醒，不管他
              */
-            if (sender.startsWith("com.android") || sender.equals("") || sender.equals("android") || sender.startsWith("com.google"))
-                return;
+//            if (sender.startsWith("com.android") || sender.equals("") || sender.equals("android") || sender.startsWith("com.google"))
+//                return;
 
 
-            XposedBridge.log(", LZQ Hook Send Broadcast, " + pid + " , " + sender + " , " + intent.toString() + " , " + System.currentTimeMillis());
+            Log.d(TAG,"hooked BroadcastIntent, " + pid + " , " + sender + " , " + intent.toString() + " , " + System.currentTimeMillis());
             //XposedBridge.log("LZQ Hook Start Service Activation, "+pid+" , "+sender+" , "+cn.toString());
 
+
+            /**
+             * Get receiver package
+             */
+            if (intent.getComponent() == null) {
+                intent.setComponent(new ComponentName("NULL_PKG", "NULL_CLASS"));
+            }
+
+            final String receiver = intent.getComponent().getPackageName();
+
+
+            if (!sender.equals(receiver)) {
+                XposedBridge.log("Cross-app Broadcast Intent activation: source = " + sender + " receiver = " + receiver);
+
+               // param.setResult(null);
+            }
 
             if (result != null && result >= 0 && intent != null) {
                 // preventRunning.onBroadcastIntent(intent);
@@ -288,7 +314,7 @@ public class SystemServiceHook extends XC_MethodHook {
             if (!sender.equals(receiver)) {
                 XposedBridge.log("Cross-app bindService activation: source = " + sender + " receiver = " + receiver);
                 XposedBridge.log("Stop cross-app activation, kill the activation");
-                param.setResult(null);
+               // param.setResult(null);
             }
 
         }
@@ -350,7 +376,7 @@ public class SystemServiceHook extends XC_MethodHook {
                 //if(user_decision)
                 {
                     XposedBridge.log("Stop cross-app activation, kill the activation");
-                    param.setResult(null);
+                  //  param.setResult(null);
                 }
             }
         }

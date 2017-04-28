@@ -15,7 +15,10 @@ public class ServiceCleaner extends Thread {
 		String ps_line = null;
 
 		try {
-			reading_process = Runtime.getRuntime().exec("/Users/laizeqi/Library/Android/sdk/platform-tools/adb shell ps");
+			//Mac OS
+			//reading_process = Runtime.getRuntime().exec("/Users/laizeqi/Library/Android/sdk/platform-tools/adb shell ps");
+			//Windows
+			reading_process = Runtime.getRuntime().exec("adb shell ps");
 		} catch (IOException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
@@ -37,7 +40,7 @@ public class ServiceCleaner extends Thread {
 					{
 						//for Mac OS: use /Users/laizeqi/Library/Android/sdk/platform-tools/adb shell ps
 						//for Windows: use adb shell am
-					reading_process = Runtime.getRuntime().exec("/Users/laizeqi/Library/Android/sdk/platform-tools/adb shell am force-stop " + line[8].split(":")[0]);
+					reading_process = Runtime.getRuntime().exec("adb shell am force-stop " + line[8].split(":")[0]);
 					}
 				}
 			}
