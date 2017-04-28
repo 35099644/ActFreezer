@@ -2,6 +2,7 @@ package com.netlab.actfreezer;
 
 //import android.app.IApplicationThread;
 
+import android.app.ActivityThread;
 import android.app.IApplicationThread;
 import android.content.ComponentName;
 import android.content.Intent;
@@ -13,6 +14,7 @@ import android.util.Log;
 
 import com.netlab.ui.Activation;
 import com.netlab.ui.GlobalSettings;
+import com.netlab.util.Tools;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -65,8 +67,8 @@ public class SystemServiceHook extends XC_MethodHook {
         hookActivityManagerServiceBindService(activityManagerService, classLoader);
         getRecordForAppLocked = activityManagerService.getDeclaredMethod("getRecordForAppLocked", IApplicationThread.class);
         getRecordForAppLocked.setAccessible(true);
-        //hookhandleReceiver(classLoader);
-        //hookCheckBroadcast(classLoader);
+        hookhandleReceiver(classLoader);
+        hookCheckBroadcast(classLoader);
 
 
 //        Class<?> activityThread = Class.forName("backgroundstudy.lzq.com.backgroundstudyapp.MainActivity");
@@ -118,7 +120,6 @@ public class SystemServiceHook extends XC_MethodHook {
                 String.class,   // resolvedType
                 int.class,  // receivingUid
                 new XC_MethodHook() {
-
                     @Override
                     protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                         int callerUid = (int) param.args[1];
@@ -126,9 +127,7 @@ public class SystemServiceHook extends XC_MethodHook {
                         Intent intent = (Intent) param.args[0];
                         String action = intent.getAction();
 
-
-
-
+                        String resolvedType = (String)param.args[3];
                         if (intent == null) {
                             intent = new Intent("NULL_INTENT");
                         }
@@ -147,7 +146,16 @@ public class SystemServiceHook extends XC_MethodHook {
                          */
                         if (!(receiver.startsWith("com.android") || receiver.equals("") || receiver.equals("android") || receiver.startsWith("com.google")))
                         {
-                            Log.d(TAG,"hooked CheckBroadcast, intent = " + intent.toString() +" receiver = "+ receiver);
+                            String pkg_name ;
+                            if(Tools.checkUid(receivingUid))
+                            {
+                                pkg_name = Tools.getPkgName(receivingUid);
+                            }
+                            else
+                            {
+                                pkg_name = "NOT FOUND!";
+                            }
+                            Log.d(TAG,"hooked CheckBroadcast, intent = " + intent.toString() +" receiver = "+ receiver +"  receiver uid = " + receivingUid + " resolved type = " + resolvedType + " pkg name = "+ pkg_name);
                         }
                     }
                 });
@@ -167,7 +175,17 @@ public class SystemServiceHook extends XC_MethodHook {
         hookMethods(activityThread, method, new XC_MethodHook() {
                     @Override
                     protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                        XposedBridge.log("LZQ Test, in handleReceiver!");
+                        /**
+                         * Here param[0] is a ReceiverData
+                         */
+                        Object data = (Object)param.args[0];
+                        Class receiverData = data.getClass();
+                        Method method = receiverData.getDeclaredMethod("toString");
+                        String receiverInfo = (String)method.invoke(data);
+
+                        Log.d(TAG, "hooked handleReceiver, receiver Info = " + receiverInfo);
+
+                        XposedBridge.log("hooked handleReceiver!" +  "receiver Info = " + receiverInfo);
                     }
                 }
         );
