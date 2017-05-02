@@ -2,19 +2,16 @@ package com.netlab.actfreezer;
 
 //import android.app.IApplicationThread;
 
-import android.app.ActivityThread;
 import android.app.IApplicationThread;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.os.Binder;
 import android.os.Build;
-import android.os.Environment;
 import android.os.Process;
 import android.util.Log;
 
-import com.netlab.ui.Activation;
-import com.netlab.ui.GlobalSettings;
+import com.netlab.util.GlobalSettings;
 import com.netlab.util.Tools;
 
 import java.io.BufferedReader;
@@ -22,8 +19,6 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.io.ObjectOutput;
-import java.io.ObjectOutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.Socket;
@@ -31,9 +26,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import de.robv.android.xposed.XC_MethodHook;
-import de.robv.android.xposed.XSharedPreferences;
 import de.robv.android.xposed.XposedBridge;
-import de.robv.android.xposed.XposedHelpers;
 
 
 import static de.robv.android.xposed.XposedHelpers.findAndHookMethod;
@@ -128,14 +121,17 @@ public class SystemServiceHook extends XC_MethodHook {
                         Intent intent = (Intent) param.args[0];
                         String action = intent.getAction();
 
-                        /**
-                         * check if the broadcast is sent by Actfreezer!
-                         */
 
-                        if(intent!=null && intent.getAction()!= null && intent.getAction().equals("ActfreeezerData"))
-                        {
-                           Log.d(TAG, "receive broadcast from actfreezer " + intent.getStringExtra("configuration"));
-                        }
+                        int Xposed_pid = Process.myPid();
+                        Log.d(TAG,"Xposed pid = " + Xposed_pid);
+//                        /**
+//                         * check if the broadcast is sent by Actfreezer!
+//                         */
+//
+//                        if(intent!=null && intent.getAction()!= null && intent.getAction().equals("ActfreeezerData"))
+//                        {
+//                           Log.d(TAG, "receive broadcast from actfreezer " + intent.getStringExtra("configuration"));
+//                        }
 
 
                         String resolvedType = (String)param.args[3];
@@ -334,11 +330,11 @@ public class SystemServiceHook extends XC_MethodHook {
 
 
 //            System.err.println(Environment.getExternalStorageDirectory());
-//            FileReader fr = new FileReader(new File("/data/local/tmp/log"));
-//            BufferedReader br = new BufferedReader(fr);
-//            System.err.println(br.readLine());
-//            fr.close();
-//            br.close();
+            FileReader fr = new FileReader(new File("/data/system/tmp/log"));
+            BufferedReader br = new BufferedReader(fr);
+            System.err.println(br.readLine());
+            fr.close();
+            br.close();
 
 
             Log.d(TAG, "hooked bindService, from " + sender + " intent = " + intent.toString());

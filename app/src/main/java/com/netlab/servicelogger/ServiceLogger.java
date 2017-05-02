@@ -12,15 +12,12 @@ import android.util.Log;
 import android.view.WindowManager;
 
 import com.netlab.ui.Activation;
-import com.netlab.ui.GlobalSettings;
+import com.netlab.util.GlobalSettings;
 
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
-
-import de.robv.android.xposed.XposedBridge;
 
 /**
  * Created by ZQ on 2017/4/15.

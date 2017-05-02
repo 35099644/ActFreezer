@@ -1,9 +1,11 @@
-package com.netlab.ui;
+package com.netlab.util;
 
 import android.os.Environment;
 import android.os.Process;
 import android.provider.Settings;
 import android.util.Log;
+
+import com.netlab.ui.Activation;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
