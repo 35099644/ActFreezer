@@ -1,1 +1,1 @@
-include ':app', ':adb_test', ':receiverapp', ':senderapp'
+include ':app', ':adb_test', ':receiverapp', ':senderapp', ':androidtestlib'

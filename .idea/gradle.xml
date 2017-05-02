@@ -9,6 +9,7 @@
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/adb_test" />
+            <option value="$PROJECT_DIR$/androidtestlib" />
             <option value="$PROJECT_DIR$/app" />
             <option value="$PROJECT_DIR$/receiverapp" />
             <option value="$PROJECT_DIR$/senderapp" />
